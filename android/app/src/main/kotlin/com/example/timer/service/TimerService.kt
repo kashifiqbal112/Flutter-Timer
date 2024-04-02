@@ -8,6 +8,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -16,15 +17,40 @@ import com.example.timer.MainActivity
 
 class TimerService  : Service() {
 
+    private val handler: Handler = Handler()
+    private var runnable: Runnable? = null
+    private var secondsPassed = 0
     public override fun onStartCommand(
         intent: Intent?,
         flags: kotlin.Int,
         startId: kotlin.Int
     ): kotlin.Int {
+
         createNotificationChannel()
         val notification =
             buildForegroundNotification("Timer Service", "Timer is running in background.. ")
         startForeground(123, notification)
+
+        if ("START_TIMER".equals(intent?.getAction())) {
+            if(runnable!=null){
+                handler.removeCallbacks(runnable!!)
+            }
+            else{
+                secondsPassed = 0
+                runnable = object : Runnable {
+                    override fun run() {
+                        val updateIntent = Intent("TimerUpdate")
+                        updateIntent.putExtra("time", secondsPassed)
+                        sendBroadcast(updateIntent)
+                        secondsPassed++
+                        handler.postDelayed(this, 1000)
+                    }
+                }
+                handler.postDelayed(runnable!!, 1000)
+            }
+
+
+        }
         return START_STICKY
     }
     override fun onBind(p0: Intent?): IBinder? {

@@ -10,4 +10,11 @@ class NativeServiceHelper {
       print("Failed to start the service: '${e.message}'.");
     }
   }
+  static Future<void> startTimerActivity() async {
+    try {
+      await _channel.invokeMethod('startTimerActivity');
+    } on PlatformException catch (e) {
+      print("Failed to start the service: '${e.message}'.");
+    }
+  }
 }
